@@ -300,6 +300,7 @@ QUnit.test('generates a video moov', function(assert) {
       width: 600,
       height: 300,
       type: 'video',
+      codec: 'avc',
       profileIdc: 3,
       levelIdc: 5,
       profileCompatibility: 7,
@@ -329,6 +330,7 @@ QUnit.test('generates an audio moov', function(assert) {
     data = mp4.generator.moov([{
       id: 7,
       type: 'audio',
+      codec: 'aac',
       audioobjecttype: 2,
       channelcount: 2,
       samplerate: 48000,
@@ -358,6 +360,7 @@ QUnit.test('generates a sound hdlr', function(assert) {
   var boxes, hdlr,
     data = mp4.generator.moov([{
       duration: 100,
+      codec: 'aac',
       type: 'audio'
     }]);
 
@@ -378,6 +381,7 @@ QUnit.test('generates a video hdlr', function(assert) {
       width: 600,
       height: 300,
       type: 'video',
+      codec: 'avc',
       sps: [],
       pps: []
     }]);
@@ -399,11 +403,13 @@ QUnit.test('generates an initialization segment', function(assert) {
       width: 600,
       height: 300,
       type: 'video',
+      codec: 'avc',
       sps: [new Uint8Array([0])],
       pps: [new Uint8Array([1])]
     }, {
       id: 2,
-      type: 'audio'
+      type: 'audio',
+      codec: 'aac'
     }]),
     init, mvhd, trak1, trak2, mvex;
 

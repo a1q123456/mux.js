@@ -6,6 +6,7 @@ var
   QUnit = require('qunit'),
   probe = require('../lib/m2ts/probe.js'),
   testSegment = segments['test-segment.ts'](),
+  testHevcSegment = segments['test-hevc-segment.ts'](),
   stuffedPesPacket = segments['test-stuffed-pes.ts']();
 
 /**
@@ -17,7 +18,12 @@ var programMapTable = {
   256: 0x1B,
   257: 0x0F
 };
+var hevcProgramMapTable = {
+  256: 0x24,
+  257: 0x03
+};
 var pmtPacket = testSegment.subarray(376, 564);
+var hevcPmtPacket = testHevcSegment.subarray(376, 564);
 var pesPacket = testSegment.subarray(564, 752);
 var videoPacket = testSegment.subarray(564, 1692);
 var videoNoKeyFramePacket = testSegment.subarray(1880, 2820);
@@ -25,6 +31,12 @@ var audioPacket = testSegment.subarray(6956, 7144);
 var notPusiPacket = testSegment.subarray(1316, 1504);
 
 QUnit.module('M2TS Probe');
+
+QUnit.test('correctly parses codec id of stream', function(assert) {
+  assert.equal(probe.parseType(hevcPmtPacket, 4096), 'pmt',
+    'cannot determine type of pmt packet when pmt pid has not been parsed yet');
+    assert.deepEqual(probe.parsePmt(hevcPmtPacket), hevcProgramMapTable, 'generates correct pmt');
+});
 
 QUnit.test('correctly parses packet type', function(assert) {
   assert.equal(probe.parseType(patPacket), 'pat', 'parses pat type');
