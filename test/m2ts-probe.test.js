@@ -13,6 +13,7 @@ var
  * All subarray indices verified with the use of thumbcoil.
  */
 var patPacket = testSegment.subarray(188, 376);
+var hevcPatPacket = testHevcSegment.subarray(188, 376);
 var pmtPid = 4095;
 var programMapTable = {
   256: 0x1B,
@@ -33,9 +34,11 @@ var notPusiPacket = testSegment.subarray(1316, 1504);
 QUnit.module('M2TS Probe');
 
 QUnit.test('correctly parses codec id of stream', function(assert) {
-  assert.equal(probe.parseType(hevcPmtPacket, 4096), 'pmt',
+  assert.equal(probe.parseType(hevcPatPacket), 'pat', 'parses pat type');
+  const pmtId = probe.parsePat(hevcPatPacket);
+  assert.equal(probe.parseType(hevcPmtPacket, pmtId), 'pmt',
     'cannot determine type of pmt packet when pmt pid has not been parsed yet');
-    assert.deepEqual(probe.parsePmt(hevcPmtPacket), hevcProgramMapTable, 'generates correct pmt');
+  assert.deepEqual(probe.parsePmt(hevcPmtPacket), hevcProgramMapTable, 'generates correct pmt');
 });
 
 QUnit.test('correctly parses packet type', function(assert) {

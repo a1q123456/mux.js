@@ -40,6 +40,7 @@ var mp2t = require('../lib/m2ts'),
     NalByteStream = codecs.h264.NalByteStream,
     nalByteStream,
 
+    H265_STREAM_TYPE = mp2t.H265_STREAM_TYPE,
     H264_STREAM_TYPE = mp2t.H264_STREAM_TYPE,
     ADTS_STREAM_TYPE = mp2t.ADTS_STREAM_TYPE,
     METADATA_STREAM_TYPE = mp2t.METADATA_STREAM_TYPE,
@@ -340,6 +341,8 @@ QUnit.test('parses metadata events from PSI packets', function(assert) {
     programMapTable: {
       video: 1,
       audio: 2,
+      videoCodec: 'avc',
+      audioCodec: 'adts',
       'timed-metadata': {}
     }
   });
@@ -417,6 +420,30 @@ QUnit.test('aggregates program stream packets from the transport stream', functi
   assert.equal(events[0].type, 'video', 'identified video data');
   assert.equal(events[0].pts, 7, 'correctly parsed the pts');
   assert.equal(events[0].data.byteLength, packetData.length, 'concatenated transport packets');
+
+  events = [];
+  
+  elementaryStream.push({
+    type: 'pes',
+    streamType: H265_STREAM_TYPE,
+    payloadUnitStartIndicator: true,
+    data: new Uint8Array(pesHead.slice(0, 4)) // Spread PES Header across packets
+  });
+
+  assert.equal(events.length, 0, 'buffers partial packets');
+
+  elementaryStream.push({
+    type: 'pes',
+    streamType: H265_STREAM_TYPE,
+    data: new Uint8Array(pesHead.slice(4).concat(packetData))
+  });
+  elementaryStream.flush();
+
+  assert.equal(events.length, 1, 'built one packet');
+  assert.equal(events[0].type, 'video', 'identified video data');
+  assert.equal(events[0].pts, 7, 'correctly parsed the pts');
+  assert.equal(events[0].data.byteLength, packetData.length, 'concatenated transport packets');
+
 });
 
 QUnit.test('aggregates program stream packets from the transport stream with no header data', function(assert) {
@@ -588,7 +615,8 @@ QUnit.test('won\'t emit non-video packets if the PES_packet_length is larger tha
 });
 
 QUnit.test('buffers audio and video program streams individually', function(assert) {
-  var events = [];
+  var events = []; 
+  
   var pesHead = pesHeader(false, 1, 2);
 
   elementaryStream.on('data', function(event) {

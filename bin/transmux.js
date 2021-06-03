@@ -123,4 +123,4 @@ const cli = function(stdin) {
 };
 
 // no stdin if isTTY is set
-cli(!process.stdin.isTTY ? process.stdin : null);
+cli(null);
